@@ -15,6 +15,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.aplicacion.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,13 +71,17 @@ fun LoginScreen(navController: NavController) {
                     )
                     Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = { navController.navigate("app_content") { popUpTo("login") { inclusive = true } } },
+                        onClick = { 
+                            navController.navigate(Screen.Home.route) { 
+                                popUpTo(navController.graph.findStartDestination().id) { inclusive = true } 
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Ingresar")
                     }
-                    TextButton(onClick = { navController.navigate("register") }) {
+                    TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
                         Text("¿Nuevo aquí? Regístrate", color = Color.White)
                     }
                 }

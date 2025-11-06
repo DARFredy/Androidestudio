@@ -1,6 +1,7 @@
 package com.example.aplicacion.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -19,16 +20,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, profileViewModel: ProfileViewModel = viewModel()) {
-    WarriorsContent(modifier, profileViewModel, profileViewModel.warriors)
+fun HomeScreen(
+    modifier: Modifier = Modifier, 
+    profileViewModel: ProfileViewModel,
+    onWarriorClicked: (Int) -> Unit
+) {
+    WarriorsContent(modifier, profileViewModel, profileViewModel.warriors, onWarriorClicked)
 }
 
 @Composable
-fun WarriorsContent(modifier: Modifier = Modifier, profileViewModel: ProfileViewModel, allWarriors: List<Warrior>) {
+fun WarriorsContent(
+    modifier: Modifier = Modifier, 
+    profileViewModel: ProfileViewModel, 
+    allWarriors: List<Warrior>,
+    onWarriorClicked: (Int) -> Unit
+) {
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredWarriors = if (searchQuery.isEmpty()) {
@@ -43,37 +53,48 @@ fun WarriorsContent(modifier: Modifier = Modifier, profileViewModel: ProfileView
     Column(
         modifier = modifier.verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.height(16.dp))
         SearchBar(searchQuery) { newQuery -> searchQuery = newQuery }
-        Spacer(Modifier.height(16.dp))
-
+        
         if (samurais.isNotEmpty()) {
-            WarriorSection("Samuráis", samurais, profileViewModel)
+            WarriorSection("Samuráis", samurais, profileViewModel, onWarriorClicked)
             Spacer(Modifier.height(16.dp))
         }
 
         if (ninjas.isNotEmpty()) {
-            WarriorSection("Ninjas", ninjas, profileViewModel)
+            WarriorSection("Ninjas", ninjas, profileViewModel, onWarriorClicked)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Icono de búsqueda") },
-        placeholder = { Text("Buscar guerrero...") },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    )
+    Box(modifier = Modifier.padding(16.dp)) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Icono de búsqueda", tint = Color.Gray) },
+            placeholder = { Text("Buscar guerrero...", color = Color.Gray) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth(),
+            textStyle = TextStyle(color = Color.White),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Gray
+            )
+        )
+    }
 }
 
 @Composable
-fun WarriorSection(title: String, warriors: List<Warrior>, profileViewModel: ProfileViewModel, modifier: Modifier = Modifier) {
+fun WarriorSection(
+    title: String, 
+    warriors: List<Warrior>, 
+    profileViewModel: ProfileViewModel, 
+    onWarriorClicked: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(modifier) {
         Text(
             text = title,
@@ -85,18 +106,23 @@ fun WarriorSection(title: String, warriors: List<Warrior>, profileViewModel: Pro
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(warriors) { warrior ->
-                WarriorCard(warrior, profileViewModel)
+                WarriorCard(warrior, profileViewModel, onWarriorClicked)
             }
         }
     }
 }
 
 @Composable
-fun WarriorCard(warrior: Warrior, profileViewModel: ProfileViewModel, modifier: Modifier = Modifier) {
+fun WarriorCard(
+    warrior: Warrior, 
+    profileViewModel: ProfileViewModel, 
+    onWarriorClicked: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val isFavorite = profileViewModel.favoriteWarriors.contains(warrior.id)
 
     Column(
-        modifier = modifier,
+        modifier = modifier.clickable { onWarriorClicked(warrior.id) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
